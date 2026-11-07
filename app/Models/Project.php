@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 
 class Project extends Model
 {
+    use Auditable;
+
     public const STATUSES = ['perencanaan', 'berjalan', 'selesai', 'ditunda'];
 
     // geom sengaja tidak masuk fillable: diisi lewat setGeometryFromGeoJson()
@@ -77,6 +80,27 @@ class Project extends Model
             ->where('status', '!=', 'selesai');
     }
 
+    // Filter status. "terlambat" dihitung dari deadline, bukan kolom status.
+    public function scopeWithStatus(Builder $query, ?string $status): Builder
+    {
+        if (! $status) {
+            return $query;
+        }
+
+        if ($status === 'terlambat') {
+            return $query->late();
+        }
+
+        // Status biasa: jangan ikutkan yang sebenarnya sudah terlambat
+        return $query->where('status', $status)
+            ->where(function ($q) use ($status) {
+                if ($status === 'selesai') {
+                    return; // proyek selesai tidak pernah terlambat
+                }
+                $q->whereNull('deadline')->orWhereDate('deadline', '>=', today());
+            });
+    }
+
     // ---------- Geometri (PostGIS) ----------
 
     // Menambahkan kolom `geojson` (string) ke hasil query
@@ -106,34 +130,26 @@ class Project extends Model
             'UPDATE projects SET geom = ST_SetSRID(ST_GeomFromGeoJSON(?), 4326) WHERE id = ?',
             [json_encode($geometry), $this->id]
         );
-    }
-    // Filter status. "terlambat" dihitung dari deadline, bukan kolom status.
-public function scopeWithStatus(Builder $query, ?string $status): Builder
-{
-    if (! $status) {
-        return $query;
+
+        $this->auditGeometryChanged();
     }
 
-    if ($status === 'terlambat') {
-        return $query->late();
+    // ---------- Progres ----------
+
+    // Sinkronkan progres proyek dengan laporan terbaru
+    public function syncProgress(): void
+    {
+        $latest = $this->reports()->orderByDesc('report_date')->orderByDesc('id')->first();
+
+        if ($latest) {
+            $this->update(['progress_percent' => $latest->progress_percent]);
+        }
     }
 
-    // Status biasa: jangan ikutkan yang sebenarnya sudah terlambat
-    return $query->where('status', $status)
-        ->where(function ($q) use ($status) {
-            if ($status === 'selesai') {
-                return; // proyek selesai tidak pernah terlambat
-            }
-            $q->whereNull('deadline')->orWhereDate('deadline', '>=', today());
-        });
-}
-// Sinkronkan progres proyek dengan laporan terbaru
-public function syncProgress(): void
-{
-    $latest = $this->reports()->orderByDesc('report_date')->orderByDesc('id')->first();
+    // ---------- Audit ----------
 
-    if ($latest) {
-        $this->update(['progress_percent' => $latest->progress_percent]);
+    public function auditLabel(): string
+    {
+        return $this->code . ' - ' . $this->name;
     }
-}
 }

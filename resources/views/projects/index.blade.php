@@ -8,10 +8,18 @@
             <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">{{ session('status') }}</div>
         @endif
 
-        @role('admin|manajer_proyek')
-            <a href="{{ route('projects.create') }}"
-               class="inline-block mb-4 px-4 py-2 bg-indigo-600 text-white rounded">+ Proyek Baru</a>
-        @endrole
+        <div class="mb-4 flex flex-wrap gap-2">
+            @role('admin|manajer_proyek')
+                <a href="{{ route('projects.create') }}"
+                   class="inline-block px-4 py-2 bg-indigo-600 text-white rounded">+ Proyek Baru</a>
+            @endrole
+
+            <a href="{{ route('projects.export.excel') }}"
+               class="inline-block px-4 py-2 bg-green-600 text-white rounded">Export Excel</a>
+               <a href="{{ route('projects.export.pdf') }}"
+   class="inline-block px-4 py-2 bg-red-600 text-white rounded">Export PDF</a>
+        </div>
+        
 
         <div class="bg-white shadow rounded overflow-x-auto">
             <table class="min-w-full text-sm">

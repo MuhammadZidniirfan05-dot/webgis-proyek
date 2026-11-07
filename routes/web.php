@@ -1,15 +1,17 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -23,10 +25,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/peta', [MapController::class, 'index'])->name('map.index');
     Route::get('/peta/data', [MapController::class, 'projects'])->name('map.data');
 
-    // Proyek (semua yang login boleh melihat)
-    Route::get('/proyek', [ProjectController::class, 'index'])->name('projects.index');
+    // Audit log (admin)
+    Route::get('/audit-log', [AuditLogController::class, 'index'])
+        ->middleware('role:admin')->name('audit.index');
 
-    // Proyek (khusus admin dan manajer). /proyek/baru harus di atas /proyek/{project}
+    // Proyek: daftar dan ekspor (semua yang login)
+    Route::get('/proyek', [ProjectController::class, 'index'])->name('projects.index');
+    Route::get('/proyek-ekspor/excel', [ProjectController::class, 'exportExcel'])->name('projects.export.excel');
+    Route::get('/proyek-ekspor/pdf', [ProjectController::class, 'exportPdf'])->name('projects.export.pdf');
+
+    // Proyek: khusus admin dan manajer. /proyek/baru harus di atas /proyek/{project}
     Route::middleware('role:admin|manajer_proyek')->group(function () {
         Route::get('/proyek/baru', [ProjectController::class, 'create'])->name('projects.create');
         Route::post('/proyek', [ProjectController::class, 'store'])->name('projects.store');
@@ -37,7 +45,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/proyek/{project}', [ProjectController::class, 'show'])->name('projects.show');
 
-    // Laporan harian (hak akses ditegakkan di controller dan policy)
+    // Laporan harian
     Route::post('/proyek/{project}/laporan', [ReportController::class, 'store'])->name('reports.store');
     Route::get('/proyek/{project}/laporan/{report}/edit', [ReportController::class, 'edit'])->name('reports.edit');
     Route::put('/proyek/{project}/laporan/{report}', [ReportController::class, 'update'])->name('reports.update');

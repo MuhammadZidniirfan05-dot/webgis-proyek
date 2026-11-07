@@ -6,6 +6,9 @@ use App\Models\Project;
 use App\Models\Region;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Exports\ProjectsExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProjectController extends Controller
 {
@@ -177,5 +180,35 @@ class ProjectController extends Controller
             'deadline' => ['nullable', 'date', 'after_or_equal:start_date'],
             'region_id' => ['nullable', 'exists:regions,id'],
         ]);
+    }
+        public function exportExcel(Request $request)
+    {
+        $status = $request->input('status');
+        abort_unless(
+            ! $status || in_array($status, array_merge(Project::STATUSES, ['terlambat'])),
+            422
+        );
+
+        return Excel::download(new ProjectsExport($status), 'proyek-' . today()->format('Ymd') . '.xlsx');
+    }
+        public function exportPdf(Request $request)
+    {
+        $status = $request->input('status');
+        abort_unless(
+            ! $status || in_array($status, array_merge(Project::STATUSES, ['terlambat'])),
+            422
+        );
+
+        $projects = Project::with(['region', 'manager'])
+            ->withStatus($status)
+            ->orderBy('code')
+            ->get();
+
+        return Pdf::loadView('exports.projects-pdf', [
+            'projects' => $projects,
+            'status' => $status,
+            'tanggal' => now(),
+        ])->setPaper('a4', 'landscape')
+          ->download('proyek-' . today()->format('Ymd') . '.pdf');
     }
 }
