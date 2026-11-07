@@ -93,4 +93,20 @@ public function destroy(Project $project)
 
     return redirect()->route('projects.index')->with('status', 'Proyek dihapus.');
 }
+    public function show(Project $project)
+    {
+        $this->authorize('view', $project);
+
+        $project->load(['region', 'manager', 'officers']);
+
+        $reports = $project->reports()
+            ->with(['user', 'photos'])
+            ->orderByDesc('report_date')
+            ->orderByDesc('id')
+            ->get();
+
+        $geojson = Project::withGeoJson()->whereKey($project->id)->value('geojson');
+
+        return view('projects.show', compact('project', 'reports', 'geojson'));
+    }
 }

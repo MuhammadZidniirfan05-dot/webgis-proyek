@@ -29,7 +29,7 @@
                     @forelse ($projects as $p)
                         <tr class="border-t">
                             <td class="p-3">{{ $p->code }}</td>
-                            <td class="p-3">{{ $p->name }}</td>
+                            <td class="p-3"><a href="{{ route('projects.show', $p) }}" class="text-indigo-600">{{ $p->name }}</a></td>
                             <td class="p-3">
                                 <span class="{{ $p->is_late ? 'text-red-600 font-semibold' : '' }}">{{ $p->display_status }}</span>
                             </td>

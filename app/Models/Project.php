@@ -127,4 +127,13 @@ public function scopeWithStatus(Builder $query, ?string $status): Builder
             $q->whereNull('deadline')->orWhereDate('deadline', '>=', today());
         });
 }
+// Sinkronkan progres proyek dengan laporan terbaru
+public function syncProgress(): void
+{
+    $latest = $this->reports()->orderByDesc('report_date')->orderByDesc('id')->first();
+
+    if ($latest) {
+        $this->update(['progress_percent' => $latest->progress_percent]);
+    }
+}
 }

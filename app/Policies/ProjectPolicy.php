@@ -22,4 +22,22 @@ class ProjectPolicy
     {
         return $this->update($user, $project);
     }
+    public function view(User $user, Project $project): bool
+{
+    return true; // semua yang login boleh melihat
+}
+
+public function report(User $user, Project $project): bool
+{
+    if ($user->hasRole('admin')) {
+        return true;
+    }
+
+    if ($user->hasRole('manajer_proyek')) {
+        return $project->manager_id === $user->id;
+    }
+
+    return $user->hasRole('petugas_lapangan')
+        && $project->officers()->where('users.id', $user->id)->exists();
+}
 }
