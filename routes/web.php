@@ -22,6 +22,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/peta', [MapController::class, 'index'])->name('map.index');
     Route::get('/peta/data', [MapController::class, 'projects'])->name('map.data');
 });
+use App\Http\Controllers\ProjectController;
+
+Route::middleware(['auth', 'role:admin|manajer_proyek'])->group(function () {
+    Route::get('/proyek/baru', [ProjectController::class, 'create'])->name('projects.create');
+    Route::post('/proyek', [ProjectController::class, 'store'])->name('projects.store');
+});
+
+Route::middleware('auth')->get('/proyek', [ProjectController::class, 'index'])->name('projects.index');
 
 require __DIR__.'/auth.php';
 
