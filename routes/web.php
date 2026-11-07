@@ -30,6 +30,16 @@ Route::middleware(['auth', 'role:admin|manajer_proyek'])->group(function () {
 });
 
 Route::middleware('auth')->get('/proyek', [ProjectController::class, 'index'])->name('projects.index');
+Route::middleware('auth')->group(function () {
+    Route::get('/proyek', [ProjectController::class, 'index'])->name('projects.index');
 
+    Route::middleware('role:admin|manajer_proyek')->group(function () {
+        Route::get('/proyek/baru', [ProjectController::class, 'create'])->name('projects.create');
+        Route::post('/proyek', [ProjectController::class, 'store'])->name('projects.store');
+        Route::get('/proyek/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
+        Route::put('/proyek/{project}', [ProjectController::class, 'update'])->name('projects.update');
+        Route::delete('/proyek/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
+    });
+});
 require __DIR__.'/auth.php';
 

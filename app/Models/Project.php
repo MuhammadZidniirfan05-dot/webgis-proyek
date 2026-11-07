@@ -107,4 +107,24 @@ class Project extends Model
             [json_encode($geometry), $this->id]
         );
     }
+    // Filter status. "terlambat" dihitung dari deadline, bukan kolom status.
+public function scopeWithStatus(Builder $query, ?string $status): Builder
+{
+    if (! $status) {
+        return $query;
+    }
+
+    if ($status === 'terlambat') {
+        return $query->late();
+    }
+
+    // Status biasa: jangan ikutkan yang sebenarnya sudah terlambat
+    return $query->where('status', $status)
+        ->where(function ($q) use ($status) {
+            if ($status === 'selesai') {
+                return; // proyek selesai tidak pernah terlambat
+            }
+            $q->whereNull('deadline')->orWhereDate('deadline', '>=', today());
+        });
+}
 }

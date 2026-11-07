@@ -17,8 +17,12 @@
             <table class="min-w-full text-sm">
                 <thead class="bg-gray-50 text-left">
                     <tr>
-                        <th class="p-3">Kode</th><th class="p-3">Nama</th><th class="p-3">Status</th>
-                        <th class="p-3">Deadline</th><th class="p-3">Progres</th>
+                        <th class="p-3">Kode</th>
+                        <th class="p-3">Nama</th>
+                        <th class="p-3">Status</th>
+                        <th class="p-3">Deadline</th>
+                        <th class="p-3">Progres</th>
+                        <th class="p-3"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -31,9 +35,22 @@
                             </td>
                             <td class="p-3">{{ $p->deadline?->format('d M Y') ?? '-' }}</td>
                             <td class="p-3">{{ $p->progress_percent }}%</td>
+                            <td class="p-3 whitespace-nowrap">
+                                @can('update', $p)
+                                    <a href="{{ route('projects.edit', $p) }}" class="text-indigo-600">Edit</a>
+                                @endcan
+                                @can('delete', $p)
+                                    <form method="POST" action="{{ route('projects.destroy', $p) }}" class="inline"
+                                          onsubmit="return confirm('Hapus proyek ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="text-red-600 ml-2">Hapus</button>
+                                    </form>
+                                @endcan
+                            </td>
                         </tr>
                     @empty
-                        <tr><td class="p-3" colspan="5">Belum ada proyek.</td></tr>
+                        <tr><td class="p-3" colspan="6">Belum ada proyek.</td></tr>
                     @endforelse
                 </tbody>
             </table>
