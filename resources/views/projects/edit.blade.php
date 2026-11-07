@@ -55,6 +55,20 @@
             <label class="block">Deskripsi
                 <textarea name="description" rows="3" class="w-full border-gray-300 rounded">{{ old('description', $project->description) }}</textarea>
             </label>
+                        <div>
+                <div class="mb-1">Petugas lapangan yang ditugaskan</div>
+                <div class="flex flex-wrap gap-4 text-sm">
+                    @forelse ($officers as $o)
+                        <label class="inline-flex items-center gap-2">
+                            <input type="checkbox" name="officers[]" value="{{ $o->id }}"
+                                   @checked(in_array($o->id, old('officers', $assignedIds)))>
+                            {{ $o->name }}
+                        </label>
+                    @empty
+                        <span class="text-gray-500">Belum ada user dengan role petugas.</span>
+                    @endforelse
+                </div>
+            </div>
 
             <div>
                 <div class="mb-1">Lokasi (geser titik, atau gambar ulang untuk mengganti)</div>
