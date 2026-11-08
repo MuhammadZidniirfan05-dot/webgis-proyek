@@ -23,23 +23,29 @@ trait Auditable
         static::deleted(fn (Model $m) => self::writeAudit($m, 'deleted', $m->getAttributes(), []));
     }
 
-    // Dipanggil manual saat geometri diubah (UPDATE geom lewat SQL mentah tidak memicu event)
+    // Dipanggil manual saat geometri diubah (UPDATE geom lewat SQL mentah tidak memicu event).
+    // Langsung ditulis, tidak lewat penyaring $auditIgnore.
     public function auditGeometryChanged(): void
     {
-        self::writeAudit($this, 'updated', [], ['geom' => 'diubah']);
+        self::insertLog($this, 'updated', [], ['geom' => 'diubah']);
     }
 
     private static function writeAudit(Model $m, string $action, array $old, array $new): void
     {
-        $ignore = static::$auditIgnore;
-        $old = array_diff_key($old, array_flip($ignore));
-        $new = array_diff_key($new, array_flip($ignore));
+        $ignore = array_flip(static::$auditIgnore);
+        $old = array_diff_key($old, $ignore);
+        $new = array_diff_key($new, $ignore);
 
         // "updated" tanpa perubahan berarti tidak perlu dicatat
         if ($action === 'updated' && empty($new)) {
             return;
         }
 
+        self::insertLog($m, $action, $old, $new);
+    }
+
+    private static function insertLog(Model $m, string $action, array $old, array $new): void
+    {
         AuditLog::create([
             'user_id' => auth()->id(),
             'action' => $action,
