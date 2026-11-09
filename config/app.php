@@ -1,17 +1,13 @@
 <?php
 
 return [
+    // Login sekali klik per role (khusus demo; matikan di produksi)
+    'show_demo_accounts' => env('SHOW_DEMO_ACCOUNTS', false),
+    'demo_roles' => array_filter(explode(',', env('DEMO_ROLES', 'manajer_proyek,petugas_lapangan,klien'))),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Application Name
-    |--------------------------------------------------------------------------
-    |
-    | This value is the name of your application, which will be used when the
-    | framework needs to place the application's name in a notification or
-    | other UI elements where an application name needs to be displayed.
-    |
-    */
+    // Admin hanya bisa masuk setelah disetujui lewat email
+    'admin_request_enabled' => env('ADMIN_REQUEST_ENABLED', false),
+    'admin_approver_email' => env('ADMIN_APPROVER_EMAIL'),
 
     'name' => env('APP_NAME', 'Laravel'),
 
