@@ -19,8 +19,10 @@
             @csrf
 
             <div class="grid md:grid-cols-2 gap-4">
-                <label class="block">Kode
-                    <input name="code" value="{{ old('code') }}" class="w-full border-gray-300 rounded" required>
+                                <label class="block">Kode
+                    <span class="text-gray-400 text-xs">(kosongkan untuk otomatis)</span>
+                    <input name="code" value="{{ old('code') }}" placeholder="{{ \App\Models\Project::nextCode() }}"
+                           class="w-full border-gray-300 rounded">
                 </label>
                 <label class="block">Nama
                     <input name="name" value="{{ old('name') }}" class="w-full border-gray-300 rounded" required>

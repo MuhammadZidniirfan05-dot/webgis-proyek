@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Exports\ProjectsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 class ProjectController extends Controller
 {
@@ -97,14 +98,30 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+        public function store(Request $request)
     {
         $data = $this->validated($request);
+        $otomatis = empty($data['code']);
 
-        $project = Project::create($data + ['manager_id' => $request->user()->id]);
+        // Kalau dua orang menyimpan bersamaan, kode bisa bentrok; ulangi sampai 3 kali
+        for ($i = 0; ; $i++) {
+            if ($otomatis) {
+                $data['code'] = Project::nextCode();
+            }
+
+            try {
+                $project = Project::create($data + ['manager_id' => $request->user()->id]);
+                break;
+            } catch (UniqueConstraintViolationException $e) {
+                if (! $otomatis || $i >= 2) {
+                    throw $e;
+                }
+            }
+        }
+
         $project->setGeometryFromGeoJson($request->input('geojson'));
 
-        return redirect()->route('projects.index')->with('status', 'Proyek disimpan.');
+        return redirect()->route('projects.index')->with('status', "Proyek {$project->code} disimpan.");
     }
 
     public function edit(Project $project)
@@ -171,7 +188,7 @@ class ProjectController extends Controller
         ], ['geojson.required' => 'Gambar lokasi proyek di peta dulu.']);
 
         return $request->validate([
-            'code' => ['required', 'string', 'max:50', 'unique:projects,code'],
+            'code' => ['nullable', 'string', 'max:50', 'unique:projects,code'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'in:' . implode(',', Project::STATUSES)],

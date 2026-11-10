@@ -152,4 +152,14 @@ class Project extends Model
     {
         return $this->code . ' - ' . $this->name;
     }
+        // Kode berikutnya: angka terbesar dari kode berpola PRJ-<angka>, ditambah satu.
+    // Kode berpola lain (mis. TES-XXXX) diabaikan.
+    public static function nextCode(): string
+    {
+        $max = (int) static::query()
+            ->selectRaw("MAX(CAST(substring(code from '^PRJ-([0-9]+)$') AS INTEGER)) as m")
+            ->value('m');
+
+        return sprintf('PRJ-%04d', $max + 1);
+    }
 }

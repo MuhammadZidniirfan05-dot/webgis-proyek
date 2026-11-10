@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\RegionController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,9 +28,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/peta', [MapController::class, 'index'])->name('map.index');
     Route::get('/peta/data', [MapController::class, 'projects'])->name('map.data');
 
-    // Audit log (admin)
-    Route::get('/audit-log', [AuditLogController::class, 'index'])
-        ->middleware('role:admin')->name('audit.index');
+    // Khusus admin: audit log dan wilayah
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit.index');
+
+        Route::resource('wilayah', RegionController::class)
+            ->parameters(['wilayah' => 'region'])
+            ->except(['show', 'create'])
+            ->names('regions');
+    });
 
     // Proyek: daftar dan ekspor
     Route::get('/proyek', [ProjectController::class, 'index'])->name('projects.index');
