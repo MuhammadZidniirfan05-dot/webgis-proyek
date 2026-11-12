@@ -25,6 +25,9 @@
                         <x-nav-link :href="route('regions.index')" :active="request()->routeIs('regions.*')">
                             Wilayah
                         </x-nav-link>
+                        <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                            Pengguna
+                        </x-nav-link>
                         <x-nav-link :href="route('audit.index')" :active="request()->routeIs('audit.*')">
                             Audit Log
                         </x-nav-link>
@@ -99,6 +102,9 @@
             @role('admin')
                 <x-responsive-nav-link :href="route('regions.index')" :active="request()->routeIs('regions.*')">
                     Wilayah
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                    Pengguna
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('audit.index')" :active="request()->routeIs('audit.*')">
                     Audit Log
